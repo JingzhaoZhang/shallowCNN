@@ -189,4 +189,66 @@ mopts.use448=false;
 mopts.poolType='average';
 %bilinear, compact_RM, compact_TS, fisher, fcfc
 run_one_experiment(dataset,network, gpuId, tag, saveInter,...
-                       batchSize, learningRate, weightDecay, mopts);                     
+                       batchSize, learningRate, weightDecay, mopts);    
+                   
+%% Baseline
+gpuId=5;
+dataset='MIT';
+network='VGG_M';
+saveInter=1;
+batchSize =32;
+tag='jingzhao';
+mopts.use448=false;
+mopts.poolType='average';
+%bilinear, compact_RM, compact_TS, fisher, fcfc
+run_one_experiment(dataset,network, gpuId, tag, saveInter,...
+                       batchSize, learningRate, weightDecay, mopts);                       
+%% Baseline
+gpuId=4;
+dataset='MIT';
+network='VGG_16';
+saveInter=1;
+batchSize =8;
+tag='jingzhao';
+mopts.use448=false;
+mopts.poolType='average';
+%bilinear, compact_RM, compact_TS, fisher, fcfc
+run_one_experiment(dataset,network, gpuId, tag, saveInter,...
+                       batchSize, learningRate, weightDecay, mopts); 
+                   
+%% Baseline
+gpuId=3;
+dataset='CUB';
+network='VGG_16';
+saveInter=1;
+batchSize =8;
+tag='jingzhao';
+mopts.use448=false;
+mopts.poolType='average';
+%bilinear, compact_RM, compact_TS, fisher, fcfc
+run_one_experiment(dataset,network, gpuId, tag, saveInter,...
+                       batchSize, learningRate, weightDecay, mopts); 
+                   
+                   
+%% Baseline
+gpuId=2;
+dataset='CUB';
+network='VGG_M';
+saveInter=1;
+batchSize =32;
+tag='jingzhao';
+mopts.use448=false;
+mopts.poolType='average';
+%bilinear, compact_RM, compact_TS, fisher, fcfc
+run_one_experiment(dataset,network, gpuId, tag, saveInter,...
+                       batchSize, learningRate, weightDecay, mopts); 
+                   
+                   
+                   
+                   
+                   
+                   
+                   
+                   
+                   
+                   
