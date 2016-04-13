@@ -166,15 +166,27 @@ mopts.poolType='average';
 %bilinear, compact_RM, compact_TS, fisher, fcfc
 run_one_experiment(dataset,network, gpuId, tag, saveInter,...
                        batchSize, learningRate, weightDecay, mopts);                   
- %% MIT VGG16 FINETUNE INITIATED COMPACT BILINEAR
-gpuId=7;
-dataset='MIT';
-network='VGG_16_fineTuned';
+%% Baseline
+gpuId=5;
+dataset='DTD';
+network='VGG_16';
 saveInter=1;
 batchSize = 8;
 tag='jingzhao';
-mopts.use448=true;
-mopts.poolType='compact_TS';
+mopts.use448=false;
+mopts.poolType='average';
 %bilinear, compact_RM, compact_TS, fisher, fcfc
 run_one_experiment(dataset,network, gpuId, tag, saveInter,...
-                       batchSize, learningRate, weightDecay, mopts);                      
+                       batchSize, learningRate, weightDecay, mopts);                   
+%% Baseline
+gpuId=6;
+dataset='DTD';
+network='VGG_M';
+saveInter=1;
+batchSize =32;
+tag='jingzhao';
+mopts.use448=false;
+mopts.poolType='average';
+%bilinear, compact_RM, compact_TS, fisher, fcfc
+run_one_experiment(dataset,network, gpuId, tag, saveInter,...
+                       batchSize, learningRate, weightDecay, mopts);                     

@@ -114,12 +114,12 @@ function net=modifyNetwork(network, dataset, varargin)
         net=addL2norm(net);
         
         outDim=mopts.projDim;
-    elseif strcmp(mopts.poolType, 'average') && mopts.use448        
+    elseif strcmp(mopts.poolType, 'average')         
         net=addReLU(net,'relu_after_conv');
         if strcmp(network, 'VGG_16')
-            poolsize = 28;
+            poolsize = 14 + 14 * mopts.use448;
         elseif strcmp(network, 'VGG_M')
-            poolsize = 27;
+            poolsize = 13 + 14 * mopts.use448;
         else
             display('Not supported');
             assert (1==0);
