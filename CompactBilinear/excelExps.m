@@ -1,16 +1,16 @@
 % % SVMopts.epsilon, reg_coeff, maxiter, method1, method2
-SVMopts.epsilon = 1E-3;
-SVMopts.reg_coeff = 1;
-SVMopts.maxiter = 1E6;
-SVMopts.method1 = 'LR';
-SVMopts.method2 = 'LR';
+% SVMopts.epsilon = 1E-3;
+% SVMopts.reg_coeff = 1;
+% SVMopts.maxiter = 1E6;
+% SVMopts.method1 = 'LR';
+% SVMopts.method2 = 'LR';
 
 % SVMopts.epsilon, reg_coeff, maxiter, method1, method2
-% SVMopts.epsilon = 1E-4;
-% SVMopts.reg_coeff = 1;
-% SVMopts.maxiter = 1E7;
-% SVMopts.method1 = 'SVM';
-% SVMopts.method2 = 'SVM';
+SVMopts.epsilon = 1E-4;
+SVMopts.reg_coeff = 1;
+SVMopts.maxiter = 1E6;
+SVMopts.method1 = 'SVM';
+SVMopts.method2 = 'SVM';
 
 %% MIT VGG_16 FCFC
 % dataset: 'CUB', 'MIT', 'FMD', 'DTD'
@@ -250,6 +250,79 @@ net.layers{end+1}=struct('type', 'custom',...
 filename = 'MIT_VGG16_FINETUNED_COMPACT_TS_448_8192';
 compare_shallow_regular(filename, dataset, network, endlayer1, endlayer2, use448, net, batchSize, save_activations, SVMopts)
 
+%% MIT VGGM compact2 224
 
+dataset='MIT';
+network='VGG_M';
+batchSize = 32;
+use448 = false;
+endlayer1 = 14;
+endlayer2 = 17;
 
+save_activations = true;
+
+filename = 'MIT_VGG_M_LR_compact2_8192_fixW_224_final_1';
+epoch = 60;
+netlink = ['shallow_models/' filename '/net-epoch-' num2str(epoch) '.mat'];
+net = load(netlink);
+net = net.net;
+
+compare_shallow_regular(filename, dataset, network, endlayer1, endlayer2, use448, net, batchSize, save_activations, SVMopts)
+
+%% CUB VGGM compact2 224
+
+dataset='CUB';
+network='VGG_M';
+batchSize = 32;
+use448 = false;
+endlayer1 = 14;
+endlayer2 = 17;
+
+save_activations = true;
+
+filename = 'CUB_VGG_M_LR_compact2_8192_fixW_224_final_1';
+epoch = 89;
+netlink = ['shallow_models/' filename '/net-epoch-' num2str(epoch) '.mat'];
+net = load(netlink);
+net = net.net;
+
+compare_shallow_regular(filename, dataset, network, endlayer1, endlayer2, use448, net, batchSize, save_activations, SVMopts)
+
+%% CUB VGG16 compact2 224
+
+dataset='CUB';
+network='VGG_16';
+batchSize = 32;
+use448 = false;
+endlayer1 = 30;
+endlayer2 = 33;
+
+save_activations = true;
+
+filename = 'CUB_VGG_16_LR_compact2_8192_fixW_224_final_1';
+epoch = 16;
+netlink = ['shallow_models/' filename '/net-epoch-' num2str(epoch) '.mat'];
+net = load(netlink);
+net = net.net;
+
+compare_shallow_regular(filename, dataset, network, endlayer1, endlayer2, use448, net, batchSize, save_activations, SVMopts)
+
+%% MIT VGG16 compact2 224
+
+dataset='MIT';
+network='VGG_16';
+batchSize = 32;
+use448 = false;
+endlayer1 = 30;
+endlayer2 = 33;
+
+save_activations = true;
+
+filename = 'MIT_VGG_16_LR_compact2_8192_fixW_224_final_1';
+epoch = 54;
+netlink = ['shallow_models/' filename '/net-epoch-' num2str(epoch) '.mat'];
+net = load(netlink);
+net = net.net;
+
+compare_shallow_regular(filename, dataset, network, endlayer1, endlayer2, use448, net, batchSize, save_activations, SVMopts)
 
