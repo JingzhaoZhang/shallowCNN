@@ -1,0 +1,105 @@
+% % SVMopts.epsilon, reg_coeff, maxiter, method1, method2
+% SVMopts.epsilon = 1E-3;
+% SVMopts.reg_coeff = 1;
+% SVMopts.maxiter = 1E6;
+% SVMopts.method1 = 'LR';
+% SVMopts.method2 = 'LR';
+
+% SVMopts.epsilon, reg_coeff, maxiter, method1, method2
+SVMopts.epsilon = 1E-4;
+SVMopts.reg_coeff = 1;
+SVMopts.maxiter = 1E6;
+SVMopts.method1 = 'SVM';
+SVMopts.method2 = 'SVM';
+
+%% DTD VGG_M FCFC
+% dataset: 'CUB', 'MIT', 'FMD', 'DTD'
+dataset='DTD';
+network='VGG_M';
+batchSize = 32;
+use448 = false;
+endlayer1 = 14;
+endlayer2 = 19;
+
+save_activations = true;
+
+filename = 'DTD_VGG_M_LR_fcfc_224_final_1';
+epoch = 20;
+netlink = ['shallow_models/' filename '/net-epoch-' num2str(epoch) '.mat'];
+net = load(netlink);
+net = net.net;
+
+compare_shallow_regular(filename, dataset, network, endlayer1, endlayer2, use448, net, batchSize, save_activations, SVMopts)
+
+%% DTD VGG_16 FCFC
+% dataset: 'CUB', 'MIT', 'FMD', 'DTD'
+dataset='DTD';
+network='VGG_16';
+batchSize = 8;
+use448 = false;
+endlayer1 = 30;
+endlayer2 = 35;
+
+save_activations = true;
+
+filename = 'DTD_VGG_16_LR_fcfc_224_final_1';
+epoch = 20;
+netlink = ['shallow_models/' filename '/net-epoch-' num2str(epoch) '.mat'];
+net = load(netlink);
+net = net.net;
+
+compare_shallow_regular(filename, dataset, network, endlayer1, endlayer2, use448, net, batchSize, save_activations, SVMopts)
+
+%% DTD VGG_16 FCFC
+% dataset: 'CUB', 'MIT', 'FMD', 'DTD'
+dataset='DTD';
+network='VGG_16';
+batchSize = 8;
+use448 = false;
+endlayer1 = 30;
+endlayer2 = 33;
+
+save_activations = true;
+
+filenames = {'DTD_VGG_16_LR_average_224_jingzhao', 'DTD_VGG_16_LR_compact2_8192_fixW_224_final_1'};
+epochs = [30, 20];
+
+for i = 1:numel(epochs)
+    
+    filename = filenames(i);
+    epoch = epochs(i);
+    
+    netlink = strcat({'shallow_models/'}, filename, {'/net-epoch-'}, {num2str(epoch)}, {'.mat'});
+    net = load(netlink{1});
+    net = net.net;
+    filename = filename{1};
+    compare_shallow_regular(filename, dataset, network, endlayer1, endlayer2, use448, net, batchSize, save_activations, SVMopts)
+    
+end
+
+%% DTD others
+% dataset: 'CUB', 'MIT', 'FMD', 'DTD'
+dataset='DTD';
+network='VGG_M';
+batchSize = 32;
+use448 = false;
+endlayer1 = 14;
+endlayer2 = 17;
+
+save_activations = true;
+
+filenames = {'DTD_VGG_M_LR_average_224_jingzhao', 'DTD_VGG_M_LR_compact2_8192_fixW_224_final_1'};
+epochs = [30,  16];
+
+for i = 1:numel(epochs)
+    
+    filename = filenames(i);
+    epoch = epochs(i);
+    
+    netlink = strcat({'shallow_models/'}, filename, {'/net-epoch-'}, {num2str(epoch)}, {'.mat'});
+    net = load(netlink{1});
+    net = net.net;
+    filename = filename{1};
+    compare_shallow_regular(filename, dataset, network, endlayer1, endlayer2, use448, net, batchSize, save_activations, SVMopts)
+    
+end
