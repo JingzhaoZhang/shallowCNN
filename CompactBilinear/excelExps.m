@@ -407,3 +407,80 @@ net = net.net;
 
 compare_shallow_regular(filename, dataset, network, endlayer1, endlayer2, use448, net, batchSize, save_activations, SVMopts)
 
+%% CUB VGG16 fcfc 224 Replace with bilinear
+
+dataset='CUB';
+network='VGG_16';
+batchSize = 8;
+use448 = false;
+endlayer1 = 30;
+endlayer2 = 35;
+
+save_activations = true;
+
+filename = 'CUB_VGG_16_LR_fcfc_224_final_1';
+epoch = 26;
+netlink = ['shallow_models/' filename '/net-epoch-' num2str(epoch) '.mat'];
+net = load(netlink);
+net = net.net;
+
+compare_bilinear_fcfc(filename, dataset, network, endlayer1, use448, net, batchSize, save_activations, SVMopts)
+
+
+
+%% MIT VGG16 fcfc 224 Replace with bilinear
+
+dataset='MIT';
+network='VGG_16';
+batchSize = 8;
+use448 = false;
+endlayer1 = 30;
+endlayer2 = 35;
+
+save_activations = true;
+
+filename = 'MIT_VGG_16_LR_fcfc_224_test_batch32';
+epoch = 60;
+netlink = ['shallow_models/' filename '/net-epoch-' num2str(epoch) '.mat'];
+net = load(netlink);
+net = net.net;
+
+compare_bilinear_fcfc(filename, dataset, network, endlayer1, use448, net, batchSize, save_activations, SVMopts)
+
+%% MIT VGGM fcfc 224 Replace with bilinear
+
+dataset='MIT';
+network='VGG_M';
+batchSize = 32;
+use448 = false;
+endlayer1 = 14;
+endlayer2 = 19;
+
+save_activations = true;
+
+filename = 'MIT_VGG_M_LR_fcfc_224_final_1';
+epoch = 20;
+netlink = ['shallow_models/' filename '/net-epoch-' num2str(epoch) '.mat'];
+net = load(netlink);
+net = net.net;
+
+compare_bilinear_fcfc(filename, dataset, network, endlayer1, use448, net, batchSize, save_activations, SVMopts)
+
+%% CUB VGGM fcfc 224 Replace with bilinear
+
+dataset='CUB';
+network='VGG_M';
+batchSize = 32;
+use448 = false;
+endlayer1 = 14;
+endlayer2 = 19;
+
+save_activations = true;
+
+filename = 'CUB_VGG_M_LR_fcfc_224_final_1';
+epoch = 36;
+netlink = ['shallow_models/' filename '/net-epoch-' num2str(epoch) '.mat'];
+net = load(netlink);
+net = net.net;
+
+compare_bilinear_fcfc(filename, dataset, network, endlayer1, use448, net, batchSize, save_activations, SVMopts)

@@ -46,13 +46,15 @@ else
         dataset, network, endlayer2, use448, net, batchSize);
     
     if ndims(trainFV) == 4
-        trainFV = sqrt(squeeze(mean(mean(trainFV, 1), 2)));
-        norms = sqrt(sum(trainFV.^2, 1));
-        trainFV = bsxfun(@rdivide, trainFV, norms);
-        valFV = sqrt(squeeze(mean(mean(valFV, 1), 2)));
-        norms = sqrt(sum(valFV.^2, 1));
-        valFV = bsxfun(@rdivide, valFV, norms);
+        trainFV = mean(mean(trainFV, 1), 2);
     end
+    
+    trainFV = sqrt(squeeze(trainFV));
+    norms = sqrt(sum(trainFV.^2, 1));
+    trainFV = bsxfun(@rdivide, trainFV, norms);
+    valFV = sqrt(squeeze(mean(mean(valFV, 1), 2)));
+    norms = sqrt(sum(valFV.^2, 1));
+    valFV = bsxfun(@rdivide, valFV, norms);
     
     if save_activations
         save(activation_file2, 'trainFV', 'valFV', 'trainY', 'valY', '-v7.3');
