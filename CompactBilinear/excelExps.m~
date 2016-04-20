@@ -1,16 +1,16 @@
 % SVMopts.epsilon, reg_coeff, maxiter, method1, method2
-% SVMopts.epsilon = 1E-3;
-% SVMopts.reg_coeff = 1;
-% SVMopts.maxiter = 1E6;
-% SVMopts.method1 = 'LR';
-% SVMopts.method2 = 'LR';
-
-% % SVMopts.epsilon, reg_coeff, maxiter, method1, method2
-SVMopts.epsilon = 1E-4;
+SVMopts.epsilon = 1E-3;
 SVMopts.reg_coeff = 1;
 SVMopts.maxiter = 1E6;
-SVMopts.method1 = 'SVM';
-SVMopts.method2 = 'SVM';
+SVMopts.method1 = 'LR';
+SVMopts.method2 = 'LR';
+
+% % SVMopts.epsilon, reg_coeff, maxiter, method1, method2
+% SVMopts.epsilon = 1E-4;
+% SVMopts.reg_coeff = 1;
+% SVMopts.maxiter = 1E6;
+% SVMopts.method1 = 'SVM';
+% SVMopts.method2 = 'SVM';
 
 %% MIT VGG_16 FCFC
 % dataset: 'CUB', 'MIT', 'FMD', 'DTD'
@@ -497,8 +497,8 @@ endlayer2 = 33;
 
 save_activations = true;
 
-filename = 'CUB_VGG_16_LR_average_224_jingzhao';
-epoch = 19;
+filename = 'CUB_VGG_16_LR_fcfc_224_final_1';
+epoch = 26;
 netlink = ['shallow_models/' filename '/net-epoch-' num2str(epoch) '.mat'];
 net = load(netlink);
 net = net.net;
@@ -518,8 +518,8 @@ endlayer2 = 33;
 
 save_activations = true;
 
-filename = 'MIT_VGG_16_LR_average_224_jingzhao';
-epoch = 30;
+filename = 'MIT_VGG_16_LR_fcfc_224_test_batch32';
+epoch = 60;
 netlink = ['shallow_models/' filename '/net-epoch-' num2str(epoch) '.mat'];
 net = load(netlink);
 net = net.net;
@@ -533,12 +533,12 @@ network='VGG_M';
 batchSize = 32;
 use448 = false;
 endlayer1 = 14;
-endlayer2 = 17;
+endlayer2 = 19;
 
 save_activations = true;
 
-filename = 'MIT_VGG_M_LR_average_224_jingzhao';
-epoch = 30;
+filename = 'MIT_VGG_M_LR_fcfc_224_final_1';
+epoch = 20;
 netlink = ['shallow_models/' filename '/net-epoch-' num2str(epoch) '.mat'];
 net = load(netlink);
 net = net.net;
@@ -552,12 +552,12 @@ network='VGG_M';
 batchSize = 32;
 use448 = false;
 endlayer1 = 14;
-endlayer2 = 17;
+endlayer2 = 19;
 
 save_activations = true;
 
-filename = 'CUB_VGG_M_LR_average_224_jingzhao';
-epoch = 30;
+filename = 'CUB_VGG_M_LR_fcfc_224_final_1';
+epoch = 36;
 netlink = ['shallow_models/' filename '/net-epoch-' num2str(epoch) '.mat'];
 net = load(netlink);
 net = net.net;
