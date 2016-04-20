@@ -108,7 +108,7 @@ end
 
 %% DTD VGGM average 224 Replace with bilinear
 
-dataset='DTD';
+dataset='CUB';
 network='VGG_M';
 batchSize = 32;
 use448 = false;
@@ -117,7 +117,7 @@ endlayer2 = 17;
 
 save_activations = true;
 
-filename = 'DTD_VGG_M_LR_average_224_jingzhao';
+filename = 'CUB_VGG_M_LR_average_224_jingzhao';
 epoch = 30;
 netlink = ['shallow_models/' filename '/net-epoch-' num2str(epoch) '.mat'];
 net = load(netlink);
@@ -125,60 +125,3 @@ net = net.net;
 
 compare_bilinear_fcfc(filename, dataset, network, endlayer1, use448, net, batchSize, save_activations, SVMopts)
 
-%% DTD VGGM fcfc 224 Replace with bilinear
-
-dataset='DTD';
-network='VGG_M';
-batchSize = 32;
-use448 = false;
-endlayer1 = 14;
-endlayer2 = 17;
-
-save_activations = true;
-
-filename = 'DTD_VGG_M_LR_fcfc_224_final_1';
-epoch = 20;
-netlink = ['shallow_models/' filename '/net-epoch-' num2str(epoch) '.mat'];
-net = load(netlink);
-net = net.net;
-
-compare_bilinear_fcfc(filename, dataset, network, endlayer1, use448, net, batchSize, save_activations, SVMopts)
-
-
-%% DTD VGG16 average 224 Replace with bilinear
-
-dataset='DTD';
-network='VGG_16';
-batchSize = 8;
-use448 = false;
-endlayer1 = 30;
-endlayer2 = 33;
-
-save_activations = true;
-
-filename = 'DTD_VGG_16_LR_average_224_jingzhao';
-epoch = 30;
-netlink = ['shallow_models/' filename '/net-epoch-' num2str(epoch) '.mat'];
-net = load(netlink);
-net = net.net;
-
-compare_bilinear_fcfc(filename, dataset, network, endlayer1, use448, net, batchSize, save_activations, SVMopts)
-
-%% DTD VGG16 fcfc 224 Replace with bilinear
-
-dataset='DTD';
-network='VGG_16';
-batchSize = 8;
-use448 = false;
-endlayer1 = 30;
-endlayer2 = 33;
-
-save_activations = true;
-
-filename = 'DTD_VGG_16_LR_fcfc_224_test_batch32';
-epoch = 60;
-netlink = ['shallow_models/' filename '/net-epoch-' num2str(epoch) '.mat'];
-net = load(netlink);
-net = net.net;
-
-compare_bilinear_fcfc(filename, dataset, network, endlayer1, use448, net, batchSize, save_activations, SVMopts)
