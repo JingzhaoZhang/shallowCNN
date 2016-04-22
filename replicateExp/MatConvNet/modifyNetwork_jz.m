@@ -1,4 +1,4 @@
-function net=modifyNetwork_jz(network, dataset, net, endLayer, lastNchannel, varargin)
+function net=modifyNetwork_jz(network, dataset, net, endLayer, lastNchannel, tag, varargin)
     % parse the input options
     mopts.poolType='bilinear'; % or fisher, compact_RM, compact_TS
     mopts.ftConvOnly=false; % if true, then FC layers won't be finetuned
@@ -90,8 +90,13 @@ function net=modifyNetwork_jz(network, dataset, net, endLayer, lastNchannel, var
         outDim=mopts.projDim;
     elseif strcmp(mopts.poolType, 'fcfc')
         % the FCFC baseline, only throw away the last classification layer
-        net=load(consts(dataset, network));
-        net.layers=net.layers(1:(endLayer+6));
+        vggnet=load(consts(dataset, network));
+        net.layers(end+1:end+6)=vggnet.layers(end-7:end-2);
+        for i = 1:endLayer
+            if strcmp(net.layers{i}.type, 'conv')
+                net.layers{i}.learningRate = [0 0];
+            end
+        end
         % could probably also add the sqrt & l2norm
         outDim=4096; % this assumes the underlying network is vgg-m or vgg-16
     elseif strcmp(mopts.poolType, 'fcfc_norm')
@@ -134,7 +139,7 @@ function net=modifyNetwork_jz(network, dataset, net, endLayer, lastNchannel, var
     if isempty(mopts.nonLinearClassify)
         % setup the last classification layer
         initFCparam=getFCinitWeight(mopts.initMethod, outDim, num_classes,...
-            mopts.classifyType, network, mopts.poolType, dataset, net, mopts.use448, mopts.batchSize);
+            mopts.classifyType, network, mopts.poolType, dataset, net, mopts.use448, mopts.batchSize, tag);
         net=addClassification(net, mopts.classifyType, initFCparam);
     else
         % load a trained nonlinear classifier from disk
@@ -259,7 +264,7 @@ function initFCparam=getFCinitWeight(...
          initMethod,...
          nfeature, nclass,...
          classificationType, network, cfgId, dataset, netBeforeClassification,...
-         use448, batchSize)
+         use448, batchSize,tag)
     
     if strcmp(initMethod, 'random')
         % random initialize
@@ -272,7 +277,7 @@ function initFCparam=getFCinitWeight(...
             'cfgId', cfgId, ...
             'projDim', nfeature, ...
             'use448', use448);
-        
+        weight_file = [weight_file(1:end-4), tag, '.mat'];
         if exist(weight_file, 'file') == 2
             % svm or logistic initialized weight, load from disk
             load(weight_file);
@@ -280,7 +285,7 @@ function initFCparam=getFCinitWeight(...
             % get activations from the last conv layer % checkpoint
             [trainFV, trainY, valFV, valY]=...
                 get_activations_dataset_network_layer(...
-                    dataset, network, cfgId, use448, netBeforeClassification, batchSize);
+                    dataset, network, cfgId, use448, netBeforeClassification, batchSize, tag);
             % train SVM or LR weight, and test it on the validation set. 
             [w, b, acc, map, scores]= train_test_vlfeat(classificationType, ...
                 squeeze(trainFV), squeeze(trainY), squeeze(valFV), squeeze(valY));

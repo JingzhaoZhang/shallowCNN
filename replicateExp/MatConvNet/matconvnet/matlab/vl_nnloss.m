@@ -138,7 +138,7 @@ labelSize = [size(c,1) size(c,2) size(c,3) size(c,4)] ;
 assert(isequal(labelSize(1:2), inputSize(1:2))) ;
 assert(labelSize(4) == inputSize(4)) ;
 switch lower(opts.loss)
-  case {'classerror', 'log', 'softmaxlog', 'mhinge', 'mshinge'}
+  case {'classerror', 'log', 'softmaxlog', 'mhinge', 'mshinge', 'sigmoid'}
     binary = false ;
 
     % there must be one categorical label per prediction vector
@@ -169,7 +169,7 @@ end
 % --------------------------------------------------------------------
 
 switch lower(opts.loss)
-  case {'log', 'softmaxlog', 'mhinge', 'mshinge'}
+  case {'log', 'softmaxlog', 'mhinge', 'mshinge', 'sigmoid'}
     % from category labels to indexes
     numPixelsPerImage = prod(inputSize(1:2)) ;
     numPixels = numPixelsPerImage * inputSize(4) ;
@@ -209,6 +209,11 @@ if nargin <= 2 || isempty(dzdy)
       t = b + log(exp(-b) + exp(a-b)) ;
     case 'hinge'
       t = max(0, 1 - c.*X) ;
+      case 'sigmoid'
+          Xmax = max(X,[],3) ;
+          Xmin = min(X, [], 3);
+          t = 10 * (X(ci) - Xmax)./(Xmax-Xmin);
+          t = 1./(exp(t)+1);
   end
   Y = instanceWeights(:)' * t(:) ;
 else
@@ -247,6 +252,15 @@ else
       Y = - dzdy .* c ./ (1 + exp(c.*X)) ;
     case 'hinge'
       Y = - dzdy .* c .* (c.*X < 1) ;
+      case 'sigmoid'
+          Y = zerosLike(X) ;
+          Xmax = max(X,[],3) ;
+          Xmin = min(X, [], 3);
+          mask = X(ci) < Xmax;
+          %sum(mask, 4)
+          t = exp(10 * (X(ci) - Xmax)./(Xmax-Xmin));
+          t = 10*t./(t+1).^2./(Xmax-Xmin);
+          Y(ci) = -mask.*dzdy.*t;
   end
 end
 

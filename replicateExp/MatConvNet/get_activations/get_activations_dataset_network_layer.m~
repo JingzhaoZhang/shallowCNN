@@ -39,7 +39,7 @@ function [trainFV, trainY, valFV, valY]=...
     
     feature_out_file=consts(dataset, 'poolout', 'network', network,...
         'cfgId', confId, 'use448', use448, 'projDim', projDim);
-    feature_out_file = [feature_out_file(1:end-4), tag, '.mat'];
+    feature_out_file = [feature_out_file, tag];
     if exist(feature_out_file, 'file') == 2
         fprintf('loading from the existing mat file\n');
         load(feature_out_file);

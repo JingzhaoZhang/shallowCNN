@@ -58,7 +58,7 @@ function run_one_experiment_jz(dataset, network, net, endLayer, lastNchannel, gp
     if useFewShot, opts.train.train=few_train(imdb, 1); end
 
     % initialize network 
-    net=modifyNetwork_jz(network, dataset, net, endLayer, lastNchannel, mopts);
+    net=modifyNetwork_jz(network, dataset, net, endLayer, lastNchannel, tag, mopts);
     
     % fine tune the fine tuned net
     % This section is legacy code, not used
