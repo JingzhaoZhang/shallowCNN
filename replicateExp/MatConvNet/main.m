@@ -245,7 +245,20 @@ run_one_experiment(dataset,network, gpuId, tag, saveInter,...
                    
                    
                    
+%% CUB VGG16 Maxpool
+gpuId=3;
+dataset='CUB';
+network='VGG_16';
+saveInter=1;
+batchSize =8;
+tag='jingzhao';
+mopts.use448=false;
+mopts.poolType='max';
+%bilinear, compact_RM, compact_TS, fisher, fcfc
+run_one_experiment(dataset,network, gpuId, tag, saveInter,...
+                       batchSize, learningRate, weightDecay, mopts); 
                    
+                        
                    
                    
                    

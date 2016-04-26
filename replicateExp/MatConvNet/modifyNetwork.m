@@ -130,6 +130,22 @@ function net=modifyNetwork(network, dataset, varargin)
         net=addSqrt(net);
         net=addL2norm(net);
         outDim = lastNchannel;
+    elseif strcmp(mopts.poolType, 'max')         
+        net=addReLU(net,'relu_after_conv');
+        if strcmp(network, 'VGG_16')
+            poolsize = 14 + 14 * mopts.use448;
+        elseif strcmp(network, 'VGG_M')
+            poolsize = 13 + 14 * mopts.use448;
+        else
+            display('Not supported');
+            assert (1==0);
+        end
+        net.layers{end+1}=struct('type', 'pool',...
+            'method', 'max', 'pool', poolsize, ...
+            'name', 'avg_pool', 'pad', 0, 'stride', 1);
+        net=addSqrt(net);
+        net=addL2norm(net);
+        outDim = lastNchannel;
     else
         error('unknown pooling type');
     end
