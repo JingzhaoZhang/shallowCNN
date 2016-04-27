@@ -130,7 +130,7 @@ for epoch=start+1:opts.numEpochs
   
   % Two Stage Train.
   if epoch < twoEpoch
-      diplay('Phase 1. Setting learning rates to 0')
+      display('Phase 1. Setting learning rates to 0')
       for i = 1:twoLayer
           if strcmp(net.layers{i}.type, 'conv')
             J = numel(net.layers{i}.weights) ;

@@ -1,4 +1,4 @@
-function FCgroupAfterCUBVGG16()
+function Copy_of_FCgroupAfterCUBVGG16()
 %% Setup mopts
 setup_yang
 mopts=struct('poolType','average', ... % could specify different pooling types
@@ -24,7 +24,7 @@ mopts=struct('poolType','average', ... % could specify different pooling types
 % to initialize the parameters of the final classification
 % layer. When set to random, use Xavier initialization.
 
-learningRate=[ones(1, 10)*1E-2 ones(1, 10)*1E-3, ones(1, 10)*1E-2 ones(1, 10)*1E-3];
+learningRate=[ones(1, 10)*1E-2 ones(1, 9)*1E-3, ones(1, 10)*1E-4, ones(1, 10)*1E-5];
 % weightDecay: usually use the default value
 weightDecay=0.0005;
 
@@ -35,26 +35,36 @@ gpuId=4;
 dataset='CUB';
 network='VGG_16';
 saveInter=1;
-batchSize = 8;
-tag='jingzhao_sigmoid';
-filename = 'CUB_VGG_M_LR_average_224_jingzhao';
-epoch = 30;
+batchSize = 32;
+tag='Jingzhao_flexiblePoolL2';
+
 
 
 net = load(consts(dataset, network));
 net.layers = net.layers(1:30);
 
-        initFCparam={{init_weight('xavierimproved', 1, 1, initFCparam(1), initFCparam(2), 'single'),...
-                      zeros(initFCparam(2), 1, 'single')}};
+hw = 1;
+initFCparam = ones(hw, hw, 1, 512, 'single')/hw/hw;
+
+net.layers{end+1} = struct('type', 'conv', 'name', 'flexiblePool', ...
+    'weights', {{initFCparam, zeros(512, 1, 'single')}}, ...
+    'stride', 1, ...
+    'pad', 0, ...
+    'learningRate', [1 2]);
 
 
-net.layers{end+1}=struct('type', 'relu', 'name', name);
+net.layers{end+1}=struct('type', 'relu', 'name', 'relu6');
 net.layers{end+1}=struct('type', 'pool',...
-    'method', 'avg', 'pool', poolsize, ...
+    'method', 'avg', 'pool', 14-hw+1, ...
     'name', 'avg_pool', 'pad', 0, 'stride', 1);
-        initFCparam=getFCinitWeight(mopts.initMethod, outDim, num_classes,...
-            mopts.classifyType, network, mopts.poolType, dataset, net, mopts.use448, mopts.batchSize, tag);
-        net=addClassification(net, mopts.classifyType, initFCparam);
+
+
+num_classes=consts(dataset, 'num_classes');
+initFCparam=getFCinitWeight(mopts.initMethod, 512, num_classes,...
+    mopts.classifyType, network, mopts.poolType, dataset, net, mopts.use448, batchSize, tag);
+net=addClassification(net, mopts.classifyType, initFCparam);
+  global net      
+  dd 
 %% some parameters should be tuned
 opts.train.batchSize = batchSize;
 opts.train.learningRate = learningRate;
@@ -160,25 +170,7 @@ function initFCparam=getFCinitWeight(...
     end
 end
 
-function weights = init_weight(opts, h, w, in, out, type)
-% -------------------------------------------------------------------------
-% See K. He, X. Zhang, S. Ren, and J. Sun. Delving deep into
-% rectifiers: Surpassing human-level performance on imagenet
-% classification. CoRR, (arXiv:1502.01852v1), 2015.
-    switch lower(opts)
-      case 'gaussian'
-        sc = 0.01/opts.scale ;
-        weights = randn(h, w, in, out, type)*sc;
-      case 'xavier'
-        sc = sqrt(3/(h*w*in)) ;
-        weights = (rand(h, w, in, out, type)*2 - 1)*sc ;
-      case 'xavierimproved'
-        sc = sqrt(2/(h*w*out)) ;
-        weights = randn(h, w, in, out, type)*sc ;
-      otherwise
-        error('Unknown weight initialization method''%s''', opts.weightInitMethod) ;
-    end
-end
+
 
 function net=addFC(net, name, initFCparam, initMethod)
     if strcmp(initMethod, 'random')

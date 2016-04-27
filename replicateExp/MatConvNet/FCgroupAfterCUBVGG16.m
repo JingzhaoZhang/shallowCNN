@@ -24,7 +24,7 @@ mopts=struct('poolType','average', ... % could specify different pooling types
 % to initialize the parameters of the final classification
 % layer. When set to random, use Xavier initialization.
 
-learningRate=[ones(1, 10)*1E-2 ones(1, 10)*1E-3, ones(1, 10)*1E-2 ones(1, 10)*1E-3];
+learningRate=[ones(1, 10)*1E-2 ones(1, 9)*1E-3, ones(1, 10)*1E-4, ones(1, 10)*1E-5];
 % weightDecay: usually use the default value
 weightDecay=0.0005;
 
@@ -35,8 +35,8 @@ gpuId=4;
 dataset='CUB';
 network='VGG_16';
 saveInter=1;
-batchSize = 8;
-tag='jingzhao_flexiblePool';
+batchSize = 32;
+tag='jingzhao_flexiblePoolL2';
 
 
 
@@ -51,20 +51,22 @@ net.layers{end+1} = struct('type', 'conv', 'name', 'flexiblePool', ...
     'stride', 1, ...
     'pad', [2,1,2,1], ...
     'learningRate', [1 2]);
-
-
 net.layers{end+1}=struct('type', 'relu', 'name', 'relu6');
+
+
 net.layers{end+1}=struct('type', 'pool',...
     'method', 'avg', 'pool', 13, ...
     'name', 'avg_pool', 'pad', 0, 'stride', 1);
+
+net=addSqrt(net);
+net=addL2norm(net);
 
 
 num_classes=consts(dataset, 'num_classes');
 initFCparam=getFCinitWeight(mopts.initMethod, 512, num_classes,...
     mopts.classifyType, network, mopts.poolType, dataset, net, mopts.use448, batchSize, tag);
 net=addClassification(net, mopts.classifyType, initFCparam);
-        
-   
+
 %% some parameters should be tuned
 opts.train.batchSize = batchSize;
 opts.train.learningRate = learningRate;
@@ -170,7 +172,20 @@ function initFCparam=getFCinitWeight(...
     end
 end
 
+function net=addSqrt(net)
+    net.layers{end+1}=struct('type', 'custom',...
+        'forward',  @yang_sqrt_forward, ...
+        'backward', @yang_sqrt_backward, ...
+        'name', 'sign_sqrt');
+end
 
+function net=addL2norm(net)
+    % implement my own layer, much faster
+    net.layers{end+1}=struct('type', 'custom',...
+        'forward',  @yang_l2norm_forward, ...
+        'backward', @yang_l2norm_backward, ...
+        'name', 'L2_normalize');
+end
 
 function net=addFC(net, name, initFCparam, initMethod)
     if strcmp(initMethod, 'random')
