@@ -24,12 +24,12 @@ mopts=struct('poolType','average', ... % could specify different pooling types
 % to initialize the parameters of the final classification
 % layer. When set to random, use Xavier initialization.
 
-learningRate=[ones(1, 30)*1E-3];
+learningRate=[ones(1, 9)*1E-3];
 % weightDecay: usually use the default value
 weightDecay=0.0005;
 
 %% Setup net
-twoEpoch = 0;
+twoEpoch = 20;
 twoLayer = 30;
 gpuId=4;
 dataset='MIT';

@@ -36,35 +36,84 @@ dataset='CUB';
 network='VGG_16';
 saveInter=1;
 batchSize = 32;
-tag='jingzhao_flexiblePoolL2';
+tag='jingzhao_autoselect';
 
 
 
 net = load(consts(dataset, network));
-net.layers = net.layers(1:30);
+net.layers = net.layers(1:35);
+
+% initFCparam = ones(5, 5, 1, 512, 'single')/25;
+% 
+% net.layers{end+1} = struct('type', 'conv', 'name', 'flexiblePool', ...
+%     'weights', {{initFCparam, zeros(512, 1, 'single')}}, ...
+%     'stride', 1, ...
+%     'pad', [2,1,2,1], ...
+%     'learningRate', [1 2]);
+% net.layers{end+1}=struct('type', 'relu', 'name', 'relu6');
+% 
+% 
+% net.layers{end+1}=struct('type', 'pool',...
+%     'method', 'avg', 'pool', 13, ...
+%     'name', 'avg_pool', 'pad', 0, 'stride', 1);
 
 
-initFCparam = ones(5, 5, 1, 512, 'single')/25;
-
-net.layers{end+1} = struct('type', 'conv', 'name', 'flexiblePool', ...
-    'weights', {{initFCparam, zeros(512, 1, 'single')}}, ...
-    'stride', 1, ...
-    'pad', [2,1,2,1], ...
-    'learningRate', [1 2]);
-net.layers{end+1}=struct('type', 'relu', 'name', 'relu6');
-
-
-net.layers{end+1}=struct('type', 'pool',...
-    'method', 'avg', 'pool', 13, ...
-    'name', 'avg_pool', 'pad', 0, 'stride', 1);
 
 net = dagnn.DagNN.fromSimpleNN(net, 'canonicalNames', true);
 
 
+net.addLayer('maxpool', ...
+    dagnn.Pooling('poolSize', [5, 5], 'pad',[2, 2, 2, 2]),...
+    'x30', 'maxOut');
 
+net.addLayer('maxpoolsqrt', ...
+    Sqrt(), 'maxOut', 'maxSqrtOut');
+
+net.addLayer('maxpoolL2', ...
+    L2Norm('dimension', 2), 'maxSqrtOut', 'maxL2Out');
+
+net.addLayer('compactPool', ...
+    yang_Compact_TS_2stream('previousChannels', [512, 512], 'outDim', 4096),...
+    {'x30', 'x30'}, 'compactOut');
+
+net.addLayer('compactsqrt', ...
+    Sqrt(), 'compactOut', 'compactSqrtOut');
+
+net.addLayer('compactL2', ...
+    L2Norm('dimension', 2), 'compactSqrtOut', 'compactL2Out');
+
+
+net.addLayer('fcfcsqrt', ...
+    Sqrt(), 'x35', 'fcfcSqrtOut');
+
+net.addLayer('fcfcL2', ...
+    L2Norm('dimension', 2), 'fcfcSqrtOut', 'fcfcL2Out');
+
+net.addLayer('concat', ...
+    dagnn.Concat('dim', 3, 'numInputs', 3), ...
+    {'maxL2Out', 'compactL2Out', 'fcfcL2Out'}, 'concatOut');
 
 
 num_classes=consts(dataset, 'num_classes');
+
+net.addLayer('classify', ...
+    dagnn.Conv('size', [1 1 512+4096+4096, num_classes], 'pad', 0, ...
+    'stride', 1), ...
+    'concatOut', 'prediction', {'classifyf', 'classifyb'})
+
+w1 = init_weight('xavierimproved', 1, 1, 512+4096+4096, num_classes, 'single');
+f = net.getParamIndex('classifyf');
+net.params(f).value = w1;
+net.params(f).learningRate = 1;
+net.params(f).weightDecay = 1;
+f = net.getParamIndex('classifyb');
+net.params(f).value = zeros(1,1,num_classes, 'single');
+net.params(f).learningRate = 1;
+net.params(f).weightDecay = 1;
+
+net.addLayer('loss',...
+    dagnn.Loss('loss', 'softmaxlog'), ...
+    'prediction', 'prob')
 
 %% some parameters should be tuned
 opts.train.batchSize = batchSize;
@@ -85,10 +134,10 @@ opts.train.continue = true ;
 opts.train.gpus = gpuId ;
 %gpuDevice(opts.train.gpus); % don't want clear the memory
 opts.train.prefetch = true ;
-opts.train.sync = false ; % for speed
-opts.train.cudnn = true ; % for speed
+%opts.train.sync = false ; % for speed
+%opts.train.cudnn = true ; % for speed
 opts.train.numEpochs = numel(opts.train.learningRate) ;
-opts.train.saveInter=saveInter;
+%opts.train.saveInter=saveInter;
 imdb = load(opts.imdbPath) ;
 % in case some dataset only has val/test
 opts.train.val=union(find(imdb.images.set==2), find(imdb.images.set==3));
@@ -99,109 +148,35 @@ valInter=1;
 
 
 
-bopts=net.normalization;
+%bopts=net.normalization;
 %bopts.transformation = 'stretch' ; %TODO (need such augmentation?)
 bopts.numThreads = 12;
 fn = getBatchWrapper(bopts) ;
 
-
-
-opts.train.backPropDepth=inf; % could limit the backprop
-[net,info] = cnntrain_jz(net, imdb, fn, twoEpoch, twoLayer, opts.train, 'conserveMemory', true, 'valInter', valInter);
+train = find(imdb.images.set==1);
+val = find(imdb.images.set==2);
+%opts.train.backPropDepth=inf; % could limit the backprop
+info = cnn_train_dag(net, imdb, fn, opts.train, 'train', train, 'val', val, struct('gpus', [gpuId]))
+%[net,info] = cnntrain_jz(net, imdb, fn, twoEpoch, twoLayer, opts.train, 'conserveMemory', true, 'valInter', valInter);
 end
 
 
-function net=addClassification(net, lossType, initFCparam)
-    % convert the 'SVM' and 'LR' to internal representation
-    if strcmp(lossType, 'LR')
-        lossType='softmaxlog';
-    elseif strcmp(lossType, 'SVM')
-        lossType='mhinge';
-    else
-        error('unknown loss type');
-    end
-
-    net=addFC(net, 'fc_final', initFCparam, 'specified');
-    
-    % add the last softmax classification layer
-    net.layers{end+1}=struct('type', 'loss',...
-                             'name', 'final_loss', ...
-                             'lossType', lossType);
-end
-
-function initFCparam=getFCinitWeight(...
-         initMethod,...
-         nfeature, nclass,...
-         classificationType, network, cfgId, dataset, netBeforeClassification,...
-         use448, batchSize,tag)
-    
-    if strcmp(initMethod, 'random')
-        % random initialize
-        initFCparam={{init_weight('xavierimproved', 1, 1, nfeature, nclass, 'single'),...
-                    zeros(nclass, 1, 'single')}};
-    elseif strcmp(initMethod, 'pretrain')
-        weight_file=consts(dataset, 'classifierW',...
-            'pretrainMethod', classificationType, ...
-            'network', network, ...
-            'cfgId', cfgId, ...
-            'projDim', nfeature, ...
-            'use448', use448);
-        weight_file = [weight_file(1:end-4), tag, '.mat'];
-        if exist(weight_file, 'file') == 2
-            % svm or logistic initialized weight, load from disk
-            load(weight_file);
-        else
-            % get activations from the last conv layer % checkpoint
-            [trainFV, trainY, valFV, valY]=...
-                get_activations_dataset_network_layer(...
-                    dataset, network, cfgId, use448, netBeforeClassification, batchSize, tag);
-            % train SVM or LR weight, and test it on the validation set. 
-            [w, b, acc, map, scores]= train_test_vlfeat(classificationType, ...
-                squeeze(trainFV), squeeze(trainY), squeeze(valFV), squeeze(valY));
-            % reshape the parameters to the input format
-            w=reshape(single(w), 1, 1, size(w, 1), size(w, 2));
-            b=single(squeeze(b));
-            initFCparam={{w, b}};
-            % save on disk
-            savefast(weight_file, 'initFCparam', 'acc', 'map', 'scores');
-        end
-        % end of using pretrain weight
-    else
-        error('init method unknown');
+function weights = init_weight(opts, h, w, in, out, type)
+% -------------------------------------------------------------------------
+% See K. He, X. Zhang, S. Ren, and J. Sun. Delving deep into
+% rectifiers: Surpassing human-level performance on imagenet
+% classification. CoRR, (arXiv:1502.01852v1), 2015.
+    switch lower(opts)
+      case 'gaussian'
+        sc = 0.01/opts.scale ;
+        weights = randn(h, w, in, out, type)*sc;
+      case 'xavier'
+        sc = sqrt(3/(h*w*in)) ;
+        weights = (rand(h, w, in, out, type)*2 - 1)*sc ;
+      case 'xavierimproved'
+        sc = sqrt(2/(h*w*out)) ;
+        weights = randn(h, w, in, out, type)*sc ;
+      otherwise
+        error('Unknown weight initialization method''%s''', opts.weightInitMethod) ;
     end
 end
-
-function net=addSqrt(net)
-    net.layers{end+1}=struct('type', 'custom',...
-        'forward',  @yang_sqrt_forward, ...
-        'backward', @yang_sqrt_backward, ...
-        'name', 'sign_sqrt');
-end
-
-function net=addL2norm(net)
-    % implement my own layer, much faster
-    net.layers{end+1}=struct('type', 'custom',...
-        'forward',  @yang_l2norm_forward, ...
-        'backward', @yang_l2norm_backward, ...
-        'name', 'L2_normalize');
-end
-
-function net=addFC(net, name, initFCparam, initMethod)
-    if strcmp(initMethod, 'random')
-        initFCparam={{init_weight('xavierimproved', 1, 1, initFCparam(1), initFCparam(2), 'single'),...
-                      zeros(initFCparam(2), 1, 'single')}};
-    elseif strcmp(initMethod, 'specified')
-        % nothing should be done
-    else
-        error('In addFC, unknown parameter initialization method.');
-    end
-    
-    net.layers{end+1} = struct('type', 'conv', 'name', name, ...
-       'weights', initFCparam, ...
-       'stride', 1, ...
-       'pad', 0, ...
-       'learningRate', [1 2]);
-end
-
-
-
